@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Scrollbar Custom */
+        /* width */
+        ::-webkit-scrollbar {
+            width: 7.5px;
+        }
+
+        /* Track */
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        /* Handle */
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        /* Handle on hover */
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Scrollbar Custom End */
+
+        .wraper {
+            width: 960px;
+            background-color: #008080;
+            border-radius: 20px;
+            margin: 20px auto;
+            display: flex;
+            padding: 10px;
+            height: calc(100vh - 100px);
+            overflow: hidden;
+        }
+
+        .column {
+            width: 50%;
+            padding: 10px;
+        }
+
+        .column-title {
+            font-size: 27px;
+            font-weight: bold;
+            color: #fff;
+            border-bottom: 2px solid lightseagreen;
+            padding: 0 20px 10px;
+        }
+
+        .column-title button {
+            float: right;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .column-items {
+            padding: 0 20px 20px;
+            height: calc(100% - 50px);
+            overflow-y: auto;
+            margin-top: 5px;
+        }
+
+        .item {
+            width: 100%;
+            padding-top: 10px;
+            cursor: move;
+        }
+
+        .content {
+            width: 100%;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .progresing {
+            width: 960px;
+            height: 30px;
+            margin: 0 auto;
+            border: 2px solid lightseagreen;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            position: relative;
+        }
+
+        #percent {
+            line-height: 0;
+            vertical-align: middle;
+            color: #000;
+        }
+
+        #progresbar {
+            width: 0%;
+            height: 100%;
+            background-color: lightseagreen;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        .over {
+            background-color: coral;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wraper">
+        <div class="column">
+            <div class="column-title">
+                In Progress
+                <button onclick="addItem()">+ Add</button>
+            </div>
+            <div class="column-items" id="progress"></div>
+            <!--<div class="column-items" id="progress" ondrop="drop(event)" ondragover="allowDrop(event)"></div>-->
+        </div>
+        <div class="column">
+            <div class="column-title">
+                Complete
+                <button onclick="clearItem()">Clear</button>
+            </div>
+            <div class="column-items" id="complete"></div>
+            <!--<div class="column-items" id="complete" ondrop="drop(event)" ondragover="allowDrop(event)"></div>-->
+        </div>
+    </div>
+    <div class="progresing">
+        <div id="progresbar"></div>
+        <span id="percent"></span>
+    </div>
+
+    <script type="text/javascript">
+        const progressColumn = document.getElementById('progress');
+        const completeColumn = document.getElementById('complete');
+
+        let progressItems = [];
+        let completeItems = [];
+
+        let numProgress = 0;
+        let numComplete = 0;
+
+        if (localStorage.getItem('progress') != null) {
+            progressItems = JSON.parse(localStorage.getItem('progress'));
+        }
+        if (localStorage.getItem('complete') != null) {
+            completeItems = JSON.parse(localStorage.getItem('complete'));
+        }
+
+        for (i in progressItems) {
+            //progressColumn.innerHTML += '<div class="item"  id="' + progressItems[i].id + '" draggable="true" ondragstart="drag(event)"><div class="content">' + progressItems[i].text + '</div></div>';
+            progressColumn.innerHTML += '<div class="item"  id="' + progressItems[i].id + '"><div class="content">' + progressItems[i].text + '</div></div>';
+            numProgress++;
+        }
+        for (i in completeItems) {
+            //completeColumn.innerHTML += '<div class="item" id="' + completeItems[i].id + '" draggable="true" ondragstart="drag(event)"><div class="content">' + completeItems[i].text + '</div></div>';
+            completeColumn.innerHTML += '<div class="item" id="' + completeItems[i].id + '"><div class="content">' + completeItems[i].text + '</div></div>';
+            numComplete++;
+        }
+
+        onProgress();
+        function onProgress() {
+            const progresBar = document.getElementById('progresbar');
+            const percentext = document.getElementById('percent');
+            let allItems = numProgress + numComplete;
+            if (allItems == 0) {
+                allItems += 1;
+            }
+            let progres = numComplete / allItems * 100;
+            percentext.innerHTML = Math.round(progres * 100) / 100 + "% Completed";
+            progresBar.style.width = progres + "%";
+            if (progres > 56) {
+                percentext.style.color = "#fff";
+            } else {
+                percentext.style.color = "#000";
+            }
+        }
+
+        let ids = numProgress + numComplete;
+        function addItem() {
+            let workItem = prompt("Please enter your Item Work:", "Working");
+
+            if (workItem == null || workItem == "") {
+                alert("Item Belum Diisi !");
+            } else {
+                //progressColumn.innerHTML += '<div class="item" id="' + ids + '" draggable="true" ondragstart="drag(event)"><div class="content">' + workItem + '</div></div>';
+                progressColumn.innerHTML += '<div class="item" id="' + ids + '" draggable="true" ondragstart="dragStart(event)"><div class="content">' + workItem + '</div></div>';
+                let obj = { id: ids, text: workItem };
+
+                progressItems.push(obj);
+                localStorage.setItem('progress', JSON.stringify(progressItems));
+                numProgress += 1;
+                ids += 1;
+                onProgress();
+            }
+        }
+        function clearItem() {
+            const el = document.querySelectorAll('#complete .item');
+            el.forEach(el => el.remove());
+            localStorage.removeItem('complete');
+            completeItems = [];
+            numComplete = 0;
+            onProgress();
+        }
+
+        function indexInParent(node) {
+            let children = node.parentNode.childNodes;
+            let num = 0;
+            for (let i = 0; i < children.length; i++) {
+                if (children[i] == node) return num;
+                if (children[i].nodeType == 1) num++;
+            }
+            return -1;
+        }
+
+        let items = document.querySelectorAll('.item');
+        let columns = document.querySelectorAll('.column-items');
+
+        items.forEach(item => {
+            item.setAttribute('draggable', true);
+            item.addEventListener('dragstart', dragStart);
+            item.addEventListener('drop', dropped);
+            item.addEventListener('dragenter', cancelDefault);
+            item.addEventListener('dragover', cancelDefault);
+        });
+        columns.forEach(column => {
+            column.addEventListener('drop', dropped);
+            column.addEventListener('dragenter', cancelDefault);
+            column.addEventListener('dragover', cancelDefault);
+        })
+
+        function dragStart(e) {
+            e.dataTransfer.clearData();
+            let index = indexInParent(document.getElementById(e.target.id));
+            let dataObj = {idx: index, id: e.target.id};
+            let obj = JSON.stringify(dataObj);
+            e.dataTransfer.setData("text", obj);
+            //this.style.opacity = '0.4';
+            //console.log("asal "+index);
+        }
+
+        function dropped(e) {
+            cancelDefault(e)
+            let data = JSON.parse(e.dataTransfer.getData("text"));
+            let oldIndex = data.idx;
+            let idx = data.id;
+            let content = document.getElementById(idx).textContent;
+            let dropped = document.getElementById(idx);
+            droper(e.target, oldIndex, dropped, idx, content);
+            //console.log(idx);
+        }
+
+        function droper(e, o, d, idx,content) {
+            //console.log(o)
+            let n, target, i = e;
+            if (e.className == 'content') {
+                e = e.parentNode.parentNode;
+                target = i.parentNode;
+                n = indexInParent(document.getElementById(i.parentNode.id));
+            } else if (e.className == "item") {
+                e = e.parentNode;
+                target = i;
+                n = indexInParent(document.getElementById(i.id));
+
+            } else {
+                target = i;
+            }
+
+            let obj = { id: idx, text: content };
+            if (e.id == 'progress') {
+                if(d.parentNode.id != e.id){
+                    progressItems.push(obj);
+                    localStorage.setItem('progress', JSON.stringify(progressItems));
+                    completeItems = completeItems.filter(function (ob) {
+                        return ob.id != idx;
+                    });
+                    localStorage.setItem('complete', JSON.stringify(completeItems));
+                    numComplete -= 1;
+                    numProgress += 1;
+                    
+                    onProgress();
+                }
+                if (i.className != 'column-items') {
+                    //console.log(n+"-"+o)
+                    if (e.id != d.parentNode.id || n < o) {
+                        target.insertAdjacentElement('beforebegin', d);
+                    } else {
+                        target.insertAdjacentElement('afterend', d);
+                    }
+                } else {
+                    target.insertAdjacentElement("beforeEnd", d);
+                }
+            } else {
+                if (e.id != d.parentNode.id) {
+                    e.insertAdjacentElement("afterBegin", d);
+                    completeItems.push(obj);
+                    localStorage.setItem('complete', JSON.stringify(completeItems));
+                    progressItems = progressItems.filter(function (ob) {
+                        return ob.id != idx;
+                    });
+                    localStorage.setItem('progress', JSON.stringify(progressItems));
+                    numComplete += 1;
+                    numProgress -= 1;
+                    
+                    onProgress();
+                }
+            }
+        }
+
+        function cancelDefault(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+
+        // function allowDrop(ev) {
+        //     ev.preventDefault();
+        // }
+
+        // function drag(ev) {
+        //     ev.dataTransfer.setData("text", ev.target.id);
+        //     let index = indexInParent(document.getElementById(ev.target.id));
+        //     ev.dataTransfer.setData('text/plain', index);
+        // }
+        // function drop(ev) {
+        //     ev.preventDefault();
+        //     let oldIndex = ev.dataTransfer.getData('text/plain');
+        //     let data = ev.dataTransfer.getData("text");
+
+        //     if (ev.target.className == "column-items") {
+        //         let data = ev.dataTransfer.getData("text");
+
+        //         let dragItem = document.getElementById(data).textContent;
+        //         let dragId = document.getElementById(data).parentNode.id;
+
+        //         if (ev.target.id != dragId) {
+        //             let obj = { id: data, text: dragItem };
+
+        //             if (ev.target.id == "complete") {
+        //                 ev.target.insertBefore(document.getElementById(data), ev.target.childNodes[0]);
+
+        //                 progressItems = progressItems.filter(function (ob) {
+        //                     return ob.id != data;
+        //                 });
+        //                 localStorage.setItem('progress', JSON.stringify(progressItems));
+
+        //                 numComplete += 1;
+        //                 numProgress -= 1;
+
+        //                 completeItems.push(obj);
+        //                 localStorage.setItem('complete', JSON.stringify(completeItems));
+
+        //             }
+        //             if (ev.target.id == "progress") {
+        //                 ev.target.appendChild(document.getElementById(data));
+
+        //                 completeItems = completeItems.filter(function (ob) {
+        //                     return ob.id != data;
+        //                 });
+        //                 localStorage.setItem('complete', JSON.stringify(completeItems));
+
+        //                 numComplete -= 1;
+        //                 numProgress += 1;
+
+        //                 progressItems.push(obj);
+        //                 localStorage.setItem('progress', JSON.stringify(progressItems));
+
+        //             }
+        //         }
+        //     }else{
+        //         console.log('cek')
+        //     }
+
+        //     onProgress();
+        //     ev.dataTransfer.clearData();
+        // }
+
+    //console.log('retrievedObject: ', JSON.parse(progressItems));
+    // Array.prototype.move = function(from,to){
+    //     this.splice(to,0,this.splice(from,1)[0]);
+    //     return this;
+    // };
+    </script>
+</body>
+
+</html>
