@@ -133,7 +133,6 @@
                 <button onclick="addItem()">+ Add</button>
             </div>
             <div class="column-items" id="progress"></div>
-            <!--<div class="column-items" id="progress" ondrop="drop(event)" ondragover="allowDrop(event)"></div>-->
         </div>
         <div class="column">
             <div class="column-title">
@@ -141,7 +140,6 @@
                 <button onclick="clearItem()">Clear</button>
             </div>
             <div class="column-items" id="complete"></div>
-            <!--<div class="column-items" id="complete" ondrop="drop(event)" ondragover="allowDrop(event)"></div>-->
         </div>
     </div>
     <div class="progresing">
@@ -167,12 +165,10 @@
         }
 
         for (i in progressItems) {
-            //progressColumn.innerHTML += '<div class="item"  id="' + progressItems[i].id + '" draggable="true" ondragstart="drag(event)"><div class="content">' + progressItems[i].text + '</div></div>';
             progressColumn.innerHTML += '<div class="item"  id="' + progressItems[i].id + '"><div class="content">' + progressItems[i].text + '</div></div>';
             numProgress++;
         }
         for (i in completeItems) {
-            //completeColumn.innerHTML += '<div class="item" id="' + completeItems[i].id + '" draggable="true" ondragstart="drag(event)"><div class="content">' + completeItems[i].text + '</div></div>';
             completeColumn.innerHTML += '<div class="item" id="' + completeItems[i].id + '"><div class="content">' + completeItems[i].text + '</div></div>';
             numComplete++;
         }
@@ -202,11 +198,10 @@
             if (workItem == null || workItem == "") {
                 alert("Item Belum Diisi !");
             } else {
-                //progressColumn.innerHTML += '<div class="item" id="' + ids + '" draggable="true" ondragstart="drag(event)"><div class="content">' + workItem + '</div></div>';
-                progressColumn.innerHTML += '<div class="item" id="' + ids + '" draggable="true" ondragstart="dragStart(event)"><div class="content">' + workItem + '</div></div>';
+                progressColumn.insertAdjacentHTML("afterBegin", '<div class="item" id="' + ids + '" draggable="true" ondragstart="dragStart(event)"><div class="content">' + workItem + '</div></div>');
                 let obj = { id: ids, text: workItem };
 
-                progressItems.push(obj);
+                progressItems.unshift(obj);
                 localStorage.setItem('progress', JSON.stringify(progressItems));
                 numProgress += 1;
                 ids += 1;
@@ -251,11 +246,9 @@
         function dragStart(e) {
             e.dataTransfer.clearData();
             let index = indexInParent(document.getElementById(e.target.id));
-            let dataObj = {idx: index, id: e.target.id};
+            let dataObj = { idx: index, id: e.target.id };
             let obj = JSON.stringify(dataObj);
             e.dataTransfer.setData("text", obj);
-            //this.style.opacity = '0.4';
-            //console.log("asal "+index);
         }
 
         function dropped(e) {
@@ -266,11 +259,9 @@
             let content = document.getElementById(idx).textContent;
             let dropped = document.getElementById(idx);
             droper(e.target, oldIndex, dropped, idx, content);
-            //console.log(idx);
         }
 
-        function droper(e, o, d, idx,content) {
-            //console.log(o)
+        function droper(e, o, d, idx, content) {
             let n, target, i = e;
             if (e.className == 'content') {
                 e = e.parentNode.parentNode;
@@ -286,25 +277,34 @@
             }
 
             let obj = { id: idx, text: content };
+            
             if (e.id == 'progress') {
-                if(d.parentNode.id != e.id){
-                    progressItems.push(obj);
-                    localStorage.setItem('progress', JSON.stringify(progressItems));
-                    completeItems = completeItems.filter(function (ob) {
-                        return ob.id != idx;
-                    });
-                    localStorage.setItem('complete', JSON.stringify(completeItems));
-                    numComplete -= 1;
-                    numProgress += 1;
-                    
-                    onProgress();
+                if (d.parentNode.id != e.id) {
+                    //if(i.className == 'column-items'){
+                        progressItems.push(obj);
+                        localStorage.setItem('progress', JSON.stringify(progressItems));
+                        completeItems = completeItems.filter(function (ob) {
+                            return ob.id != idx;
+                        });
+                        localStorage.setItem('complete', JSON.stringify(completeItems));
+                        numComplete -= 1;
+                        numProgress += 1;
+
+                        onProgress();
+                    // }else{
+                    //     // progressItems.splice(1, 0, obj);
+                    //     // console.log(progressItems)
+                    // }
                 }
-                if (i.className != 'column-items') {
-                    //console.log(n+"-"+o)
-                    if (e.id != d.parentNode.id || n < o) {
+                if (i.className != 'column-items' && e.id != d.parentNode.id) {
+                    if (n < o) {
                         target.insertAdjacentElement('beforebegin', d);
+                        moveArr(progressItems, o, n);
+                        localStorage.setItem('progress', JSON.stringify(progressItems));
                     } else {
                         target.insertAdjacentElement('afterend', d);
+                        moveArr(progressItems, o, n);
+                        localStorage.setItem('progress', JSON.stringify(progressItems));
                     }
                 } else {
                     target.insertAdjacentElement("beforeEnd", d);
@@ -312,7 +312,7 @@
             } else {
                 if (e.id != d.parentNode.id) {
                     e.insertAdjacentElement("afterBegin", d);
-                    completeItems.push(obj);
+                    completeItems.unshift(obj);
                     localStorage.setItem('complete', JSON.stringify(completeItems));
                     progressItems = progressItems.filter(function (ob) {
                         return ob.id != idx;
@@ -320,7 +320,7 @@
                     localStorage.setItem('progress', JSON.stringify(progressItems));
                     numComplete += 1;
                     numProgress -= 1;
-                    
+
                     onProgress();
                 }
             }
@@ -331,74 +331,10 @@
             e.stopPropagation();
             return false;
         }
-
-        // function allowDrop(ev) {
-        //     ev.preventDefault();
-        // }
-
-        // function drag(ev) {
-        //     ev.dataTransfer.setData("text", ev.target.id);
-        //     let index = indexInParent(document.getElementById(ev.target.id));
-        //     ev.dataTransfer.setData('text/plain', index);
-        // }
-        // function drop(ev) {
-        //     ev.preventDefault();
-        //     let oldIndex = ev.dataTransfer.getData('text/plain');
-        //     let data = ev.dataTransfer.getData("text");
-
-        //     if (ev.target.className == "column-items") {
-        //         let data = ev.dataTransfer.getData("text");
-
-        //         let dragItem = document.getElementById(data).textContent;
-        //         let dragId = document.getElementById(data).parentNode.id;
-
-        //         if (ev.target.id != dragId) {
-        //             let obj = { id: data, text: dragItem };
-
-        //             if (ev.target.id == "complete") {
-        //                 ev.target.insertBefore(document.getElementById(data), ev.target.childNodes[0]);
-
-        //                 progressItems = progressItems.filter(function (ob) {
-        //                     return ob.id != data;
-        //                 });
-        //                 localStorage.setItem('progress', JSON.stringify(progressItems));
-
-        //                 numComplete += 1;
-        //                 numProgress -= 1;
-
-        //                 completeItems.push(obj);
-        //                 localStorage.setItem('complete', JSON.stringify(completeItems));
-
-        //             }
-        //             if (ev.target.id == "progress") {
-        //                 ev.target.appendChild(document.getElementById(data));
-
-        //                 completeItems = completeItems.filter(function (ob) {
-        //                     return ob.id != data;
-        //                 });
-        //                 localStorage.setItem('complete', JSON.stringify(completeItems));
-
-        //                 numComplete -= 1;
-        //                 numProgress += 1;
-
-        //                 progressItems.push(obj);
-        //                 localStorage.setItem('progress', JSON.stringify(progressItems));
-
-        //             }
-        //         }
-        //     }else{
-        //         console.log('cek')
-        //     }
-
-        //     onProgress();
-        //     ev.dataTransfer.clearData();
-        // }
-
-    //console.log('retrievedObject: ', JSON.parse(progressItems));
-    // Array.prototype.move = function(from,to){
-    //     this.splice(to,0,this.splice(from,1)[0]);
-    //     return this;
-    // };
+        function moveArr(arr, from, to) {
+            arr.splice(to, 0, arr.splice(from, 1)[0]);
+            return arr;
+        };
     </script>
 </body>
 
