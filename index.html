@@ -258,74 +258,58 @@
             let idx = data.id;
             let content = document.getElementById(idx).textContent;
             let dropped = document.getElementById(idx);
-            droper(e.target, oldIndex, dropped, idx, content);
-        }
+            let el = e.target;
+            let n, target, obj = { id: idx, text: content };
 
-        function droper(e, o, d, idx, content) {
-            let n, target, i = e;
-            if (e.className == 'content') {
-                e = e.parentNode.parentNode;
-                target = i.parentNode;
-                n = indexInParent(document.getElementById(i.parentNode.id));
-            } else if (e.className == "item") {
-                e = e.parentNode;
-                target = i;
-                n = indexInParent(document.getElementById(i.id));
-
+            if (el.className == 'content') {
+                el = el.parentNode.parentNode;
+                target = e.target.parentNode;
+                n = indexInParent(document.getElementById(target.id));
+            } else if (el.className == 'item') {
+                el = el.parentNode;
+                target = e.target;
+                n = indexInParent(document.getElementById(target.id));
             } else {
-                target = i;
+                target = e.target;
             }
 
-            let obj = { id: idx, text: content };
-            
-            if (e.id == 'progress') {
-                if (d.parentNode.id != e.id) {
-                    //if(i.className == 'column-items'){
-                        progressItems.push(obj);
-                        localStorage.setItem('progress', JSON.stringify(progressItems));
-                        completeItems = completeItems.filter(function (ob) {
-                            return ob.id != idx;
-                        });
-                        localStorage.setItem('complete', JSON.stringify(completeItems));
-                        numComplete -= 1;
-                        numProgress += 1;
-
-                        onProgress();
-                    // }else{
-                    //     // progressItems.splice(1, 0, obj);
-                    //     // console.log(progressItems)
-                    // }
-                }
-                if (i.className != 'column-items' && e.id != d.parentNode.id) {
-                    if (n < o) {
-                        target.insertAdjacentElement('beforebegin', d);
-                        moveArr(progressItems, o, n);
-                        localStorage.setItem('progress', JSON.stringify(progressItems));
+            if (dropped.parentNode.id != el.id) {
+                if (el.id == 'progress') {
+                    if (e.target.className != 'column-items') {
+                        target.insertAdjacentElement('beforebegin', dropped);
+                        
                     } else {
-                        target.insertAdjacentElement('afterend', d);
-                        moveArr(progressItems, o, n);
-                        localStorage.setItem('progress', JSON.stringify(progressItems));
+                        target.insertAdjacentElement("beforeEnd", dropped);
+                       
                     }
+                    
+                    numComplete -= 1;
+                    numProgress += 1;
+                    onProgress();
                 } else {
-                    target.insertAdjacentElement("beforeEnd", d);
-                }
-            } else {
-                if (e.id != d.parentNode.id) {
-                    e.insertAdjacentElement("afterBegin", d);
-                    completeItems.unshift(obj);
-                    localStorage.setItem('complete', JSON.stringify(completeItems));
-                    progressItems = progressItems.filter(function (ob) {
-                        return ob.id != idx;
-                    });
-                    localStorage.setItem('progress', JSON.stringify(progressItems));
+                    target.insertAdjacentElement("afterBegin", dropped);
+                    
                     numComplete += 1;
                     numProgress -= 1;
-
                     onProgress();
+                }
+            } else {
+                if (el.id == 'progress') {
+                    if(e.target.className != 'column-items'){
+                        if (n < oldIndex) {
+                            target.insertAdjacentElement('beforebegin', dropped);                            
+                        } else {
+                            target.insertAdjacentElement('afterend', dropped);
+                        }
+                    }else{
+                        target.insertAdjacentElement("beforeEnd", dropped);
+                        n = progressItems.length;
+                    }
+                    console.log(n);
+                    
                 }
             }
         }
-
         function cancelDefault(e) {
             e.preventDefault();
             e.stopPropagation();
