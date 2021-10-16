@@ -249,6 +249,7 @@
             let dataObj = { idx: index, id: e.target.id };
             let obj = JSON.stringify(dataObj);
             e.dataTransfer.setData("text", obj);
+            e.target.style.opacity = 0.4;
         }
 
         function dropped(e) {
@@ -261,6 +262,8 @@
             let el = e.target;
             let n, target, obj = { id: idx, text: content };
 
+            dropped.style.opacity = 1;
+            
             if (el.className == 'content') {
                 el = el.parentNode.parentNode;
                 target = e.target.parentNode;
@@ -277,18 +280,23 @@
                 if (el.id == 'progress') {
                     if (e.target.className != 'column-items') {
                         target.insertAdjacentElement('beforebegin', dropped);
-                        
+                        progressItems.splice(n,0,obj);
                     } else {
                         target.insertAdjacentElement("beforeEnd", dropped);
-                       
+                        progressItems.push(obj);
                     }
-                    
+                    localStorage.setItem('progress', JSON.stringify(progressItems));
+                    completeItems = completeItems.filter(function (ob) {return ob.id != idx;});
+                    localStorage.setItem('complete', JSON.stringify(completeItems));
                     numComplete -= 1;
                     numProgress += 1;
                     onProgress();
                 } else {
                     target.insertAdjacentElement("afterBegin", dropped);
-                    
+                    completeItems.unshift(obj);
+                    localStorage.setItem('complete', JSON.stringify(completeItems));
+                    progressItems = progressItems.filter(function (ob) {return ob.id != idx;});
+                    localStorage.setItem('progress', JSON.stringify(progressItems));
                     numComplete += 1;
                     numProgress -= 1;
                     onProgress();
@@ -306,7 +314,8 @@
                         n = progressItems.length;
                     }
                     console.log(n);
-                    
+                    moveArr(progressItems, oldIndex, n);
+                    localStorage.setItem('progress', JSON.stringify(progressItems));
                 }
             }
         }
